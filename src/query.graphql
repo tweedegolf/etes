@@ -1,0 +1,48 @@
+query {
+  repository(owner: "$owner", name: "$name") {
+    releases(last:3) {
+      edges {
+        node {
+          name
+          url
+          tagName
+          createdAt
+          tagCommit {
+          	oid
+            authoredDate
+          }
+        }
+      }
+    }
+    pullRequests(
+      last: 50
+      orderBy: {field: CREATED_AT, direction: DESC}
+      states: OPEN
+    ) {
+      edges {
+        node {
+          number
+          title
+          isDraft
+          assignees(first: 10) {
+            edges {
+              node {
+                name
+                login
+                avatarUrl
+              }
+            }
+          }
+          createdAt
+          statusCheckRollup {
+            state
+            commit {
+              oid
+              authoredDate
+            }
+          }
+        }
+      }
+    }
+  }
+}

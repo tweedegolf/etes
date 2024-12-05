@@ -1,0 +1,13 @@
+title = "Test Environments"
+github_token = "a-personal-access-token"
+github_owner = "tweedegolf"
+github_repo = "etes"
+github_client_id = "some-oauth-client-id"
+github_client_secret = "some-oauth-secret"
+authorize_url = "https://example.com/etes/authorize"
+admins = ["example"]
+api_key = "more-secret-than-this"
+session_key = "more-entropy-than-this"
+command_args = ["--port", "{port}"]
+favicon = "🙂"
+words = ['foo', 'bar', 'baz']

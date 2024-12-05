@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # build frontend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - run: |-
+          yarn install --frozen-lockfile
+          yarn build
+        working-directory: frontend
+
+      # build backend
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-features -- --deny "warnings"
+      - run: cargo test
+      - run: rustup target add x86_64-unknown-linux-musl
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo --locked build --release --target=x86_64-unknown-linux-musl
+
+      # release
+      - name: Determine release tag
+        run: |
+          VERSION=$(sed -n '/version\s*=\s*"\([^"]*\)"/{s//\1/p;q}' Cargo.toml)
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          TAG="v${VERSION}-alpha.${SHA_SHORT}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+      - run: mkdir -p release
+      - run: mv target/x86_64-unknown-linux-musl/release/etes release/etes
+      - run: sha256sum -b * > SHA256SUMS
+        working-directory: release
+      - run: git tag $TAG
+      - run: git push origin $TAG
+      - uses: softprops/action-gh-release@v2
+        with:
+          body: Automatic release, commit ${{ github.sha }}
+          tag_name: ${{ env.TAG }}
+          target_commitish: "${{ github.sha }}"
+          files: release/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Version ${{ env.TAG }}
