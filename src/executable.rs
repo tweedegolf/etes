@@ -111,6 +111,9 @@ pub async fn get_executables() -> Vec<Executable> {
 }
 
 pub async fn remove_unused_executables(state: AppState) -> anyhow::Result<()> {
+    // create bin directory if it does not exist
+    tokio::fs::create_dir_all("./bin").await?;
+
     let executables = get_executables().await;
     let commit_hashes = state.github.get_commit_hashes();
 
