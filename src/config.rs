@@ -1,3 +1,5 @@
+use std::env;
+
 use anyhow::Result;
 use serde::Deserialize;
 
@@ -32,8 +34,10 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<&'static Config> {
+        let config_file = env::var("ETES_CONFIG_FILE").unwrap_or("config.toml".to_string());
+
         let config: Config = config::Config::builder()
-            .add_source(config::File::with_name("config.toml"))
+            .add_source(config::File::with_name(&config_file))
             .add_source(
                 config::Environment::with_prefix("etes")
                     .try_parsing(true)

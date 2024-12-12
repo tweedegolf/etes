@@ -1,4 +1,4 @@
-import { Anchor, Avatar, Badge, Button, Card, Flex, Loader, Table, Title, Tooltip } from '@mantine/core';
+import { Anchor, Avatar, Badge, Button, Card, Flex, Loader, Text, Table, Title, Tooltip, Box } from '@mantine/core';
 import { Action, Pull, State, WorkflowStatus } from "./types";
 import { RunButton } from './RunButton';
 import { Dispatch } from 'preact/hooks';
@@ -63,9 +63,13 @@ export function PullTable({ state, dispatch }: PullTableProps) {
             <Table.Tr key={pull.number}>
               <Table.Td>
                 <PullRequest baseUrl={state.baseUrl} number={pull.number} />
-                <Anchor href={`${state.baseUrl}/pull/${pull.number}`} target="_blank">
-                  {pull.title}
-                </Anchor>
+                <Box display="inline-block" maw="500">
+                  <Anchor href={`${state.baseUrl}/pull/${pull.number}`} target="_blank">
+                    <Text truncate="end">
+                      {pull.title}
+                    </Text>
+                  </Anchor>
+                </Box>
               </Table.Td>
               <Table.Td>
                 {pull.assignees.map(assignee => (
