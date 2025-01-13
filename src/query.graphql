@@ -1,6 +1,9 @@
 query {
-  repository(owner: "$owner", name: "$name") {
-    releases(last:3) {
+  repository(owner: "kiesraad", name: "abacus") {
+    releases(
+      first: 3
+      orderBy: {field: CREATED_AT, direction: DESC}
+    ) {
       edges {
         node {
           name
