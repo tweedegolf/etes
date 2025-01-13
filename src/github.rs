@@ -102,7 +102,7 @@ impl GitHubState {
             .replace("$owner", &config.github_owner)
             .replace("$name", &config.github_repo);
 
-        let ressponse = reqwest::Client::new()
+        let response = reqwest::Client::new()
             .post("https://api.github.com/graphql")
             .json(&json!({ "query": request_body }))
             .header("User-Agent", "etes")
@@ -110,7 +110,7 @@ impl GitHubState {
             .send()
             .await?;
 
-        let root: GraphRoot = ressponse.json().await?;
+        let root: GraphRoot = response.json().await?;
 
         GitHubState::from_graphql(root).await
     }
