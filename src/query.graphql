@@ -1,7 +1,25 @@
 query {
-  repository(owner: "kiesraad", name: "abacus") {
+  repository(owner: "$owner", name: "$name") {
+    defaultBranchRef{
+      target{
+        ... on Commit{
+          history(first:2){
+            edges{
+              node{
+                ... on Commit{
+                  oid
+                  url
+                  committedDate
+                  messageHeadline
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     releases(
-      first: 3
+      first: 2
       orderBy: {field: CREATED_AT, direction: DESC}
     ) {
       edges {

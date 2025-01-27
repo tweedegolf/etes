@@ -25,6 +25,12 @@ pub enum WorkflowStatus {
 pub struct Commit {
     date: DateTime<Utc>,
     hash: CommitHash,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    url: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -91,6 +97,7 @@ impl GitHubStateManager {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GitHubState {
+    commits: Vec<Commit>,
     releases: Vec<Release>,
     pulls: Vec<Pull>,
 }
@@ -133,6 +140,20 @@ impl GitHubState {
     async fn from_graphql(root: GraphRoot) -> anyhow::Result<Self> {
         let mut pulls = Vec::new();
         let mut releases = Vec::new();
+        let mut commits = Vec::new();
+
+        for edge in root.data.repository.default_branch_ref.target.history.edges {
+            let node = edge.node;
+
+            let commit = Commit {
+                date: node.committed_date,
+                hash: node.oid,
+                message: Some(node.message_headline),
+                url: Some(node.url),
+            };
+
+            commits.push(commit);
+        }
 
         for edge in root.data.repository.releases.edges {
             let node = edge.node;
@@ -146,6 +167,8 @@ impl GitHubState {
                 commit: Commit {
                     date: commit.authored_date,
                     hash: commit.oid,
+                    message: None,
+                    url: None,
                 },
             };
 
@@ -173,13 +196,19 @@ impl GitHubState {
                 commit: Commit {
                     date: commit.authored_date,
                     hash: commit.oid,
+                    message: None,
+                    url: None,
                 },
             };
 
             pulls.push(pull);
         }
 
-        Ok(GitHubState { releases, pulls })
+        Ok(GitHubState {
+            commits,
+            releases,
+            pulls,
+        })
     }
 }
 
@@ -190,6 +219,20 @@ structstruck::strike! {
     struct GraphRoot {
         data: struct Data {
             repository: struct Repository {
+                default_branch_ref: struct DefaultBranchRefs {
+                    target: struct DefaultBranchTarget {
+                        history: struct DefaultBranchHistory {
+                            edges: Vec<struct BranchEdge {
+                                node: struct BranchNode {
+                                    oid: CommitHash,
+                                    committed_date: DateTime<Utc>,
+                                    url: String,
+                                    message_headline: String,
+                                },
+                            }>,
+                        },
+                    },
+                },
                 releases: struct Releases {
                     edges: Vec<struct ReleaseEdge {
                         node: struct ReleaseNode {

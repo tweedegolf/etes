@@ -10,6 +10,7 @@ import Releases from './Releases';
 import Server from './Server';
 import { IconCircleX } from '@tabler/icons-react';
 import { useEffect } from 'preact/hooks';
+import Commits from './Commits';
 
 export function App() {
   const { state, dispatch, localDispatch } = useEtes();
@@ -35,7 +36,8 @@ export function App() {
             <Title c="darkblue" order={1}>{state.title}</Title>
           </Flex>
         </Flex>
-        <Flex gap="md">
+        <Flex gap="md" wrap="wrap">
+          <Commits state={state} dispatch={dispatch} />
           <Releases state={state} dispatch={dispatch} />
           <Server state={state} />
         </Flex>

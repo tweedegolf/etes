@@ -131,12 +131,12 @@ async fn app() -> Result<(AppState, Router)> {
         .route("/etes/login", get(auth::login))
         .route("/etes/logout", get(auth::logout))
         .route("/etes/authorize", get(auth::authorize))
-        .route("/etes/api/v1/ws/:caller", get(ws_handler))
+        .route("/etes/api/v1/ws/{caller}", get(ws_handler))
         .route(
-            "/etes/api/v1/executable/:trigger_hash/:build_hash",
+            "/etes/api/v1/executable/{trigger_hash}/{build_hash}",
             put(upload_handler),
         )
-        .route("/etes/api/v1/data/:caller", get(data_handler))
+        .route("/etes/api/v1/data/{caller}", get(data_handler))
         .merge(memory_router)
         .with_state(state.clone());
 

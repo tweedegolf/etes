@@ -6,6 +6,8 @@ export type WorkflowStatus = 'PENDING' | 'ERROR' | 'EXPECTED' | 'FAILURE' | 'SUC
 export interface Commit {
   date: string;
   hash: string;
+  message?: string;
+  url?: string;
 }
 
 export interface Executable {
@@ -39,6 +41,7 @@ export interface Pull {
 }
 
 export interface GitHubState {
+  commits: Commit[],
   releases: Release[],
   pulls: Pull[];
 }

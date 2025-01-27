@@ -130,7 +130,11 @@ export function useEtes() {
     title: document.title,
     githubLoading: false,
     baseUrl: '',
-    github: { releases: [], pulls: [] },
+    github: {
+      commits: [],
+      releases: [],
+      pulls: [],
+    },
     services: [],
     executables: [],
     websocket: null,

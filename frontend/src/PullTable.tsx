@@ -8,6 +8,7 @@ import CommitHash from './CommitHash';
 import { OpenButton } from './OpenButton';
 import { PullRequest } from './PullRequest';
 import { statusColor } from './util';
+import { useMediaQuery } from '@mantine/hooks';
 
 interface PullTableProps {
   state: State;
@@ -28,6 +29,8 @@ function statusIcon(status: WorkflowStatus) {
 }
 
 export function PullTable({ state, dispatch }: PullTableProps) {
+  const isMobile = useMediaQuery(`(max-width: 768px)`);
+
   return (
     <Card withBorder mt="lg">
       <Flex justify="space-between">
@@ -63,9 +66,9 @@ export function PullTable({ state, dispatch }: PullTableProps) {
             <Table.Tr key={pull.number}>
               <Table.Td>
                 <PullRequest baseUrl={state.baseUrl} number={pull.number} />
-                <Box display="inline-block" maw="500">
+                <Box display="inline-block">
                   <Anchor href={`${state.baseUrl}/pull/${pull.number}`} target="_blank">
-                    <Text truncate="end">
+                    <Text truncate="end" maw={isMobile ? '200px' : '500px'}>
                       {pull.title}
                     </Text>
                   </Anchor>

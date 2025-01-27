@@ -1,9 +1,10 @@
 use anyhow::{anyhow, Context};
 use axum::{
-    extract::{Host, Request, State},
+    extract::{Request, State},
     response::{Html, IntoResponse, Redirect, Response},
     RequestExt,
 };
+use axum_extra::extract::Host;
 use hyper::{StatusCode, Uri};
 
 use crate::{

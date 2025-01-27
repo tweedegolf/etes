@@ -2,8 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use anyhow::anyhow;
 use axum::{
-    async_trait,
-    extract::{FromRef, FromRequestParts, State},
+    extract::{FromRef, FromRequestParts, OptionalFromRequestParts, State},
     http::request::Parts,
     response::{IntoResponse, Redirect, Response},
     RequestPartsExt,
@@ -92,7 +91,37 @@ impl IntoResponse for AuthAction {
     }
 }
 
-#[async_trait]
+impl<S> OptionalFromRequestParts<S> for GitHubUser
+where
+    GithubOauthService: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AuthAction;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        let service: State<GithubOauthService> =
+            parts.extract_with_state(state).await.map_err(|_| {
+                AuthAction::Error(AppError::Server(anyhow!("Authorization service not found")))
+            })?;
+
+        let jar: PrivateCookieJar =
+            PrivateCookieJar::from_headers(&parts.headers, service.session_key());
+
+        let Some(session_cookie) = jar.get(COOKIE_NAME) else {
+            return Ok(None);
+        };
+
+        let Ok(user) = serde_json::from_str::<GitHubUser>(session_cookie.value()) else {
+            return Ok(None);
+        };
+
+        Ok(Some(user))
+    }
+}
+
 impl<S> FromRequestParts<S> for GitHubUser
 where
     GithubOauthService: FromRef<S>,
