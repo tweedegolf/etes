@@ -117,15 +117,35 @@ pub async fn remove_unused_executables(state: AppState) -> anyhow::Result<()> {
     let executables = get_executables().await;
     let commit_hashes = state.github.get_commit_hashes();
 
+    // check if any of the executables are not in the commit hashes
     for executable in executables {
         if !commit_hashes
             .iter()
             .any(|hash| hash == executable.hash() || hash == executable.trigger_hash())
         {
-            info!("Removing unused executable: {:?}", executable.path());
-            // tokio::fs::remove_file(executable.path()).await?;
-        } else {
-            info!("Keeping executable: {:?}", executable.path());
+            // remove old executables (after 30 days)
+            if let Ok(metadata) = tokio::fs::metadata(executable.path()).await {
+                let Ok(created) = metadata.created() else {
+                    continue;
+                };
+
+                let Ok(duration) = created.elapsed() else {
+                    continue;
+                };
+
+                if duration.as_secs() > 30 * 24 * 60 * 60 {
+                    tokio::fs::remove_file(executable.path()).await?;
+                    info!("Removing old executable: {:?}", executable.path());
+                } else {
+                    info!(
+                        "Keeping recent executable: {:?} {} days",
+                        executable.path(),
+                        duration.as_secs() / (24 * 60 * 60)
+                    );
+                }
+            } else {
+                info!("Keeping used executable: {:?}", executable.path());
+            }
         }
     }
 
