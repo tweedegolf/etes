@@ -26,7 +26,7 @@ export interface Release {
 export interface Assignee {
   avatarUrl: string,
   login: string,
-  name: string,
+  name?: string,
 }
 
 export interface Pull {

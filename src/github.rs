@@ -48,7 +48,7 @@ pub struct Release {
 pub struct Assignee {
     avatar_url: String,
     login: String,
-    name: String,
+    name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
