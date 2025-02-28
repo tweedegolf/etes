@@ -2,15 +2,13 @@ use anyhow::Result;
 use auth::GithubOauthService;
 use axum::{
     body::Body,
-    extract::{FromRef, State},
-    response::Html,
+    extract::FromRef,
     routing::{any, get, put},
     Router,
 };
 use cookie::Key;
 use github::GitHubStateManager;
 use hyper_util::{client::legacy::connect::HttpConnector, rt::TokioExecutor};
-use memory_serve::{load_assets, MemoryServe};
 use std::{ops::Deref, sync::Arc};
 use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -121,13 +119,18 @@ impl AppStateContainer {
 
 async fn app() -> Result<(AppState, Router)> {
     let state: AppState = AppStateContainer::new()?.into();
+    let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
 
-    let memory_router = MemoryServe::new(load_assets!("./frontend/dist"))
-        .index_file(None)
-        .into_router();
+    let frontend = spaxum::load!(&state.config.title)
+        .set_esbuild_args(vec![
+            "--jsx-factory=preact.h".to_string(),
+            "--jsx-fragment=preact.Fragment".to_string(),
+            "--alias:react=preact".to_string(),
+        ])
+        .set_html_template(index);
 
     let app = Router::new()
-        .route("/", get(index_handler))
+        .merge(frontend.router())
         .route("/etes/login", get(auth::login))
         .route("/etes/logout", get(auth::logout))
         .route("/etes/authorize", get(auth::authorize))
@@ -137,7 +140,6 @@ async fn app() -> Result<(AppState, Router)> {
             put(upload_handler),
         )
         .route("/etes/api/v1/data/{caller}", get(data_handler))
-        .merge(memory_router)
         .with_state(state.clone());
 
     Ok((state, app))
@@ -182,13 +184,4 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-async fn index_handler(State(state): State<AppState>) -> Html<String> {
-    let html = include_str!("../frontend/dist/index.html");
-
-    Html(
-        html.replace("{favicon}", &state.config.favicon)
-            .replace("{title}", &state.config.title),
-    )
 }
