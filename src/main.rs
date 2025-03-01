@@ -121,8 +121,7 @@ async fn app() -> Result<(AppState, Router)> {
     let state: AppState = AppStateContainer::new()?.into();
     let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
 
-    let frontend = spaxum::load!(&state.config.title)
-        .set_html_template(index);
+    let frontend = spaxum::load!(&state.config.title).set_html_template(index);
 
     let app = Router::new()
         .merge(frontend.router())
