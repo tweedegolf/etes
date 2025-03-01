@@ -1,16 +1,16 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use parking_lot::RwLock;
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tracing::{error, info};
 
 use crate::{
-    AppState, Config,
     events::{Event, ServiceState},
-    executable::{Executable, ExecutableData, get_executables},
+    executable::{get_executables, Executable, ExecutableData},
     github::CommitHash,
     service::{Service, ServiceData},
     user::User,
     util::is_valid_name,
+    AppState, Config,
 };
 
 pub struct ServiceManager {
@@ -310,11 +310,11 @@ pub async fn start_and_stop_services(state: AppState) -> Result<()> {
 #[cfg(test)]
 mod test {
     use crate::{
-        AppState, AppStateContainer,
         events::{Event, ServiceState},
         executable::Executable,
         services::start_and_stop_services,
         user::User,
+        AppState, AppStateContainer,
     };
 
     #[tokio::test]
@@ -327,7 +327,7 @@ mod test {
         let executable = Executable::from_commit(hash.clone(), hash.clone());
 
         let _ = tokio::fs::remove_file(executable.path()).await;
-        tokio::fs::copy("test-app/test-app", executable.path())
+        tokio::fs::copy("test/hello-world", executable.path())
             .await
             .unwrap();
 
