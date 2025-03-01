@@ -8,6 +8,6 @@ authorize_url = "https://example.com/etes/authorize"
 admins = ["example"]
 api_key = "more-secret-than-this"
 session_key = "more-entropy-than-this"
-command_args = ["--port", "{port}"]
+command_args = ["{port}"]
 favicon = "🙂"
 words = ['foo', 'bar', 'baz']

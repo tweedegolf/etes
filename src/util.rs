@@ -1,4 +1,4 @@
-use rand::{distributions::Alphanumeric, Rng};
+use rand::{Rng, distributions::Alphanumeric};
 use sha2::Digest;
 use tokio::net::TcpListener;
 
@@ -80,8 +80,12 @@ mod test {
         assert!(super::is_valid_name("test-123-abc-"));
         assert!(!super::is_valid_name("test-123-abc-!"));
         assert!(!super::is_valid_name("test-123-abc-!@#$%^&*()_+|"));
-        assert!(super::is_valid_name("testtesttesttesttesttesttesttesttesttesttesttesttesttesttestttesttesttesttesttesttesttesttest"));
-        assert!(!super::is_valid_name("testtesttesttesttesttesttesttesttesttesttesttesttesttesttestttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest"));
+        assert!(super::is_valid_name(
+            "testtesttesttesttesttesttesttesttesttesttesttesttesttesttestttesttesttesttesttesttesttesttest"
+        ));
+        assert!(!super::is_valid_name(
+            "testtesttesttesttesttesttesttesttesttesttesttesttesttesttestttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest"
+        ));
     }
 
     #[test]

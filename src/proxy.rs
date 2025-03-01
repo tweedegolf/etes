@@ -1,17 +1,17 @@
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use axum::{
+    RequestExt,
     extract::{Request, State},
     response::{Html, IntoResponse, Redirect, Response},
-    RequestExt,
 };
 use axum_extra::extract::Host;
 use hyper::{StatusCode, Uri};
 
 use crate::{
+    AppState,
     error::AppError,
     user::{GitHubUser, User},
     util::{get_random_name, is_valid_hash, random_string},
-    AppState,
 };
 
 fn not_found(domain: &str) -> Response {

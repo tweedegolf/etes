@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
 
-use crate::{events::Event, AppState, Config};
+use crate::{AppState, Config, events::Event};
 
 pub type CommitHash = String;
 

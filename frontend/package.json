@@ -3,21 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
-  },
   "dependencies": {
     "@mantine/core": "^7.14.1",
     "@mantine/hooks": "^7.14.1",
     "@mantine/notifications": "^7.14.1",
     "@tabler/icons-react": "^3.22.0",
-    "preact": "^10.24.3"
-  },
-  "devDependencies": {
-    "@preact/preset-vite": "^2.9.1",
-    "typescript": "~5.6.2",
-    "vite": "^5.4.10"
+    "react": "npm:@preact/compat@^18.3.1",
+    "react-dom": "npm:@preact/compat@^18.3.1"
   }
 }

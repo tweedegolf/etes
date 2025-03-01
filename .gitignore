@@ -1,5 +1,6 @@
-/target
+target/
 /.vscode
 bin
 !bin/.gitkeep
 .env
+config-local.toml

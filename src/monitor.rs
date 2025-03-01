@@ -3,7 +3,7 @@ use serde::Serialize;
 use std::sync::Arc;
 use sysinfo::System;
 
-use crate::{events::Event, AppState};
+use crate::{AppState, events::Event};
 
 #[derive(Clone, Serialize)]
 pub struct MemoryState {

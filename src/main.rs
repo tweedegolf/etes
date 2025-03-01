@@ -1,16 +1,14 @@
 use anyhow::Result;
 use auth::GithubOauthService;
 use axum::{
-    body::Body,
-    extract::{FromRef, State},
-    response::Html,
-    routing::{any, get, put},
     Router,
+    body::Body,
+    extract::FromRef,
+    routing::{any, get, put},
 };
 use cookie::Key;
 use github::GitHubStateManager;
 use hyper_util::{client::legacy::connect::HttpConnector, rt::TokioExecutor};
-use memory_serve::{load_assets, MemoryServe};
 use std::{ops::Deref, sync::Arc};
 use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -119,15 +117,10 @@ impl AppStateContainer {
     }
 }
 
-async fn app() -> Result<(AppState, Router)> {
+async fn app(with_frontend: bool) -> Result<(AppState, Router)> {
     let state: AppState = AppStateContainer::new()?.into();
 
-    let memory_router = MemoryServe::new(load_assets!("./frontend/dist"))
-        .index_file(None)
-        .into_router();
-
-    let app = Router::new()
-        .route("/", get(index_handler))
+    let mut app = Router::new()
         .route("/etes/login", get(auth::login))
         .route("/etes/logout", get(auth::logout))
         .route("/etes/authorize", get(auth::authorize))
@@ -137,8 +130,15 @@ async fn app() -> Result<(AppState, Router)> {
             put(upload_handler),
         )
         .route("/etes/api/v1/data/{caller}", get(data_handler))
-        .merge(memory_router)
         .with_state(state.clone());
+
+    if with_frontend {
+        let index =
+            include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
+        let frontend = spaxum::load!(&state.config.title).set_html_template(index);
+
+        app = app.merge(frontend.router());
+    }
 
     Ok((state, app))
 }
@@ -158,7 +158,7 @@ async fn main() -> Result<()> {
         )
         .init();
 
-    let (state, app) = app().await?;
+    let (state, app) = app(true).await?;
 
     AppStateContainer::init(state.clone()).await;
     AppStateContainer::spawn_workers(state.clone()).await;
@@ -182,13 +182,4 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-async fn index_handler(State(state): State<AppState>) -> Html<String> {
-    let html = include_str!("../frontend/dist/index.html");
-
-    Html(
-        html.replace("{favicon}", &state.config.favicon)
-            .replace("{title}", &state.config.title),
-    )
 }

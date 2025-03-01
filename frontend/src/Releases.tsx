@@ -1,6 +1,6 @@
 import { Title, Text, Card, Anchor, Flex, Table } from '@mantine/core';
 import { Action, State } from "./types";
-import { Dispatch } from 'preact/hooks';
+import React, { Dispatch } from 'react';
 import DateTime from './DateTime';
 import CommitHash from './CommitHash';
 import { RunButton } from './RunButton';
