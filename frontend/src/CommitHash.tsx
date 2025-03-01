@@ -1,3 +1,4 @@
+import React from 'react';
 import { Anchor, Code, Tooltip } from "@mantine/core";
 
 export default function CommitHash({ baseUrl, commitHash }: { baseUrl: string, commitHash: string }) {

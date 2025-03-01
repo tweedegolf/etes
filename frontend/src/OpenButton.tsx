@@ -1,3 +1,4 @@
+import React from 'react';
 import { State } from "./types";
 import { Button } from '@mantine/core';
 import { IconExternalLink, } from "@tabler/icons-react";

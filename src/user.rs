@@ -2,16 +2,16 @@ use std::fmt::{self, Display, Formatter};
 
 use anyhow::anyhow;
 use axum::{
+    RequestPartsExt,
     extract::{FromRef, FromRequestParts, OptionalFromRequestParts, State},
     http::request::Parts,
     response::{IntoResponse, Redirect, Response},
-    RequestPartsExt,
 };
 use axum_extra::extract::PrivateCookieJar;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    auth::{GithubOauthService, COOKIE_NAME},
+    auth::{COOKIE_NAME, GithubOauthService},
     config::Config,
     error::AppError,
     util::{is_valid_name, sha256},

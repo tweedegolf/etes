@@ -1,17 +1,17 @@
 use axum::{
     extract::{
-        ws::{Message, WebSocket},
         Path, State, WebSocketUpgrade,
+        ws::{Message, WebSocket},
     },
     response::IntoResponse,
 };
 use tracing::{error, info, warn};
 
 use crate::{
+    AppState,
     error::AppError,
     events::Event,
     user::{GitHubUser, User},
-    AppState,
 };
 
 pub async fn ws_handler(

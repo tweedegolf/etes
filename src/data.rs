@@ -1,18 +1,18 @@
 use anyhow::Result;
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 use serde::Serialize;
 
 use crate::{
+    AppState, GITHUB_BASE_URL,
     error::AppError,
     executable::ExecutableData,
     github::GitHubState,
     monitor::MemoryState,
     service::ServiceData,
     user::{GitHubUser, User},
-    AppState, GITHUB_BASE_URL,
 };
 
 #[derive(Clone, Serialize)]

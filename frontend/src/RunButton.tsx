@@ -1,7 +1,7 @@
 import { Action, Commit, Executable, Service } from "./types";
 import { Button } from '@mantine/core';
 import { IconRocket } from "@tabler/icons-react";
-import { Dispatch, useEffect, useState } from 'preact/hooks';
+import React, { Dispatch, useEffect, useState } from 'react';
 import { generateName, getServiceUrl } from "./util";
 
 interface RunButtonProps {

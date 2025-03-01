@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tracing::info;
 
-use crate::{github::CommitHash, util::is_valid_hash, AppState};
+use crate::{AppState, github::CommitHash, util::is_valid_hash};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]

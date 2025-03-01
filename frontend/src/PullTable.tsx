@@ -1,7 +1,7 @@
 import { Anchor, Avatar, Badge, Button, Card, Flex, Loader, Text, Table, Title, Tooltip, Box } from '@mantine/core';
 import { Action, Pull, State, WorkflowStatus } from "./types";
 import { RunButton } from './RunButton';
-import { Dispatch } from 'preact/hooks';
+import React, { Dispatch } from 'react';
 import { IconAlertTriangle, IconCheck, IconRefresh } from '@tabler/icons-react';
 import DateTime from './DateTime';
 import CommitHash from './CommitHash';

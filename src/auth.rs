@@ -1,17 +1,17 @@
 /// This module contains the request handlers for the GitHub OAuth flow.
 /// It includes functions for login, logout, and authorization.
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use axum::{
     extract::{FromRef, Query, State},
     http::HeaderValue,
     response::{IntoResponse, Redirect, Response},
 };
-use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+use axum_extra::extract::{PrivateCookieJar, cookie::Cookie};
 use cookie::{Key, SameSite};
 use hyper::header::{ACCEPT, USER_AGENT};
 use oauth2::{
-    basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenResponse, TokenUrl, basic::BasicClient, reqwest::async_http_client,
 };
 use serde::Deserialize;
 use std::fmt::Debug;
