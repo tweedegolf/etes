@@ -1,10 +1,10 @@
 use anyhow::Result;
 use auth::GithubOauthService;
 use axum::{
+    Router,
     body::Body,
     extract::FromRef,
     routing::{any, get, put},
-    Router,
 };
 use cookie::Key;
 use github::GitHubStateManager;
@@ -133,7 +133,8 @@ async fn app(with_frontend: bool) -> Result<(AppState, Router)> {
         .with_state(state.clone());
 
     if with_frontend {
-        let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
+        let index =
+            include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
         let frontend = spaxum::load!(&state.config.title).set_html_template(index);
 
         app = app.merge(frontend.router());

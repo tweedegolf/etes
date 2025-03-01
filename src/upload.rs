@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use axum::{
     extract::{Path, Request, State},
     response::IntoResponse,
@@ -12,7 +12,7 @@ use tokio_util::io::StreamReader;
 use tracing::{error, info};
 
 use crate::{
-    error::AppError, events::Event, executable::Executable, util::is_valid_hash, AppState,
+    AppState, error::AppError, events::Event, executable::Executable, util::is_valid_hash,
 };
 
 pub async fn upload_handler(
