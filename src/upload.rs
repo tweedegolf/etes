@@ -99,7 +99,7 @@ mod test {
 
     #[tokio::test]
     async fn test_upload_handler() {
-        let (state, app) = app().await.unwrap();
+        let (state, app) = app(false).await.unwrap();
 
         let hash1 = "1111111111111111111111111111111111111111";
         let hash2 = "2222222222222222222222222222222222222222";

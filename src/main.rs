@@ -117,14 +117,10 @@ impl AppStateContainer {
     }
 }
 
-async fn app() -> Result<(AppState, Router)> {
+async fn app(with_frontend: bool) -> Result<(AppState, Router)> {
     let state: AppState = AppStateContainer::new()?.into();
-    let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
 
-    let frontend = spaxum::load!(&state.config.title).set_html_template(index);
-
-    let app = Router::new()
-        .merge(frontend.router())
+    let mut app = Router::new()
         .route("/etes/login", get(auth::login))
         .route("/etes/logout", get(auth::logout))
         .route("/etes/authorize", get(auth::authorize))
@@ -135,6 +131,13 @@ async fn app() -> Result<(AppState, Router)> {
         )
         .route("/etes/api/v1/data/{caller}", get(data_handler))
         .with_state(state.clone());
+
+    if with_frontend {
+        let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
+        let frontend = spaxum::load!(&state.config.title).set_html_template(index);
+
+        app = app.merge(frontend.router());
+    }
 
     Ok((state, app))
 }
@@ -154,7 +157,7 @@ async fn main() -> Result<()> {
         )
         .init();
 
-    let (state, app) = app().await?;
+    let (state, app) = app(true).await?;
 
     AppStateContainer::init(state.clone()).await;
     AppStateContainer::spawn_workers(state.clone()).await;

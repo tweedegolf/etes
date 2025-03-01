@@ -319,8 +319,6 @@ mod test {
 
     #[tokio::test]
     async fn test_service_manager() {
-        std::env::set_var("ETES_COMMAND_ARGS", "{port}");
-
         let state: AppState = AppStateContainer::new().unwrap().into();
 
         assert_eq!(state.config.command_args[0], "{port}");
@@ -329,7 +327,7 @@ mod test {
         let executable = Executable::from_commit(hash.clone(), hash.clone());
 
         let _ = tokio::fs::remove_file(executable.path()).await;
-        tokio::fs::copy("test/hello-world", executable.path())
+        tokio::fs::copy("test-app/test-app", executable.path())
             .await
             .unwrap();
 
