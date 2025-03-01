@@ -1,3 +1,4 @@
+import React from 'react';
 import { State } from "./types";
 import { Badge, Loader } from '@mantine/core';
 import { IconLine, IconPlugConnectedX } from '@tabler/icons-react';

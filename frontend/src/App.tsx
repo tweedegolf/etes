@@ -9,7 +9,7 @@ import { ServiceTable } from './ServiceTable';
 import Releases from './Releases';
 import Server from './Server';
 import { IconCircleX } from '@tabler/icons-react';
-import { useEffect } from 'preact/hooks';
+import React, { useEffect } from 'react';
 import Commits from './Commits';
 
 export function App() {

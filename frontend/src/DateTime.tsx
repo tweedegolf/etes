@@ -1,3 +1,4 @@
+import React from 'react';
 import { Tooltip } from "@mantine/core";
 
 const DATE_FORMAT = new Intl.DateTimeFormat('sv-SE', {

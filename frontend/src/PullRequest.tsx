@@ -1,3 +1,4 @@
+import React from 'react';
 import { Anchor, Badge, Tooltip } from '@mantine/core';
 
 interface PullRequestProps {

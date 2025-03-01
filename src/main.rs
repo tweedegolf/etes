@@ -122,11 +122,11 @@ async fn app() -> Result<(AppState, Router)> {
     let index = include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
 
     let frontend = spaxum::load!(&state.config.title)
-        .set_esbuild_args(vec![
-            "--jsx-factory=preact.h".to_string(),
-            "--jsx-fragment=preact.Fragment".to_string(),
-            "--alias:react=preact".to_string(),
-        ])
+        // .set_esbuild_args(vec![
+        //     "--jsx-factory=preact.h".to_string(),
+        //     "--jsx-fragment=preact.Fragment".to_string(),
+        //     "--alias:react=preact".to_string(),
+        // ])
         .set_html_template(index);
 
     let app = Router::new()

@@ -1,6 +1,6 @@
 import { Anchor, Avatar, Badge, Button, Card, Flex, Table, Title, Text, Tooltip } from '@mantine/core';
 import { Action, Service, State } from './types';
-import { Dispatch } from 'preact/hooks';
+import React, { Dispatch } from 'react';
 import { getServiceUrl, isGitHubUser } from './util';
 import { IconExternalLink, IconHandStop } from '@tabler/icons-react';
 import DateTime from './DateTime';

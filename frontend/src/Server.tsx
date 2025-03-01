@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, Title, Table, Flex, Button, Avatar, Tooltip, Text } from '@mantine/core';
 import { State } from './types';
 import { formatFileSize, isGitHubUser } from './util';
