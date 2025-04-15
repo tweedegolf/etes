@@ -30,6 +30,8 @@ pub struct Config {
     pub words: Vec<String>,
     // Github user handles of admins
     pub admins: Vec<String>,
+    // Maximum number of concurrent services
+    pub max_services: usize,
 }
 
 impl Config {
@@ -37,6 +39,7 @@ impl Config {
         let config_file = env::var("ETES_CONFIG_FILE").unwrap_or("config.toml".to_string());
 
         let config: Config = config::Config::builder()
+            .set_default("max_services", 1000)?
             .add_source(config::File::with_name(&config_file))
             .add_source(
                 config::Environment::with_prefix("etes")

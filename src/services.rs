@@ -63,6 +63,19 @@ impl ServiceManager {
         let error = service.error();
         self.services.write().insert(name.to_string(), service);
 
+        // Stop the oldest services if the service limit is reached
+        for (index, s) in self.get_state().iter().enumerate() {
+            info!("Service {index}/{}: {}", config.max_services, s.name);
+            if index >= config.max_services {
+                info!("Stopping service {}", s.name);
+                if let Some(removed_service) = self.services.write().remove(&s.name) {
+                    if let Err(e) = removed_service.stop() {
+                        error!("Failed to stop service {}: {:?}", name, e);
+                    }
+                }
+            }
+        }
+
         match error {
             Some(e) => Err(anyhow::anyhow!(e)),
             None => Ok(name.to_string()),
