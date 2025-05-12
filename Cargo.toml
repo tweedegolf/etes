@@ -11,37 +11,37 @@ axum-extra = { version = "0.10", default-features = false, features = [
 ] }
 bytes = "1.8"
 chrono = { version = "0.4", features = ["serde"] }
-config = "0.14.1"
-constant_time_eq = "0.3.1"
-cookie = "0.18.1"
-futures = "0.3.31"
+config = "0.14"
+constant_time_eq = "0.3"
+cookie = "0.18"
+futures = "0.3"
 hyper = { version = "1.0", features = ["full"] }
 hyper-util = { version = "0.1", features = ["client-legacy"] }
-oauth2 = "4.4.2"
+oauth2 = "4.4"
 parking_lot = "0.12"
-rand = "0.8.5"
+rand = "0.8"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls-webpki-roots",
 ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sha2 = "0.10.8"
-structstruck = "0.4.1"
-sysinfo = "0.32.0"
+sha2 = "0.10"
+structstruck = "0.5"
+sysinfo = "0.32"
 tokio = { version = "1", features = ["full", "rt-multi-thread"] }
-tokio-util = "0.7.12"
+tokio-util = "0.7"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-url = "2.5.4"
+url = "2.5"
 spaxum = { git = "https://github.com/tweedegolf/spaxum.git" }
 
 [build-dependencies]
 spaxum = { git = "https://github.com/tweedegolf/spaxum.git" }
 
 [dev-dependencies]
-tower = "0.5.1"
-http-body-util = "0.1.2"
+tower = "0.5"
+http-body-util = "0.1"
 
 [profile.release]
 strip = true

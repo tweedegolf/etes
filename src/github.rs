@@ -214,8 +214,8 @@ impl GitHubState {
 
 // Returned data structure from the graphql query
 structstruck::strike! {
-    #[strikethrough[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]]
-    #[strikethrough[serde(rename_all = "camelCase")]]
+    #[structstruck::each[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]]
+    #[structstruck::each[serde(rename_all = "camelCase")]]
     struct GraphRoot {
         data: struct Data {
             repository: struct Repository {
@@ -233,6 +233,7 @@ structstruck::strike! {
                         },
                     },
                 },
+
                 releases: struct Releases {
                     edges: Vec<struct ReleaseEdge {
                         node: struct ReleaseNode {
