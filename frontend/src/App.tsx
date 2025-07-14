@@ -1,5 +1,4 @@
 import '@mantine/core/styles.css';
-import './index.css';
 
 import { Alert, Box, Flex, MantineProvider, Title } from '@mantine/core';
 import { useEtes } from "./useEtes";
