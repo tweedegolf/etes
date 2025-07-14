@@ -7,7 +7,10 @@ use constant_time_eq::constant_time_eq;
 use futures::TryStreamExt;
 use hyper::StatusCode;
 use std::{fs::Permissions, io, os::unix::fs::PermissionsExt};
-use tokio::{fs::File, io::BufWriter};
+use tokio::{
+    fs::File,
+    io::{AsyncWriteExt, BufWriter},
+};
 use tokio_util::io::StreamReader;
 use tracing::{error, info};
 
@@ -48,6 +51,14 @@ pub async fn upload_handler(
     // init new executable
     let executable = Executable::from_commit(build_hash.clone(), trigger_hash.clone());
 
+    // delete the file if it already exists
+    if executable.path().exists() {
+        if let Err(err) = tokio::fs::remove_file(executable.path()).await {
+            error!("Failed to remove existing file: {err}");
+            return Err(AppError::Server(anyhow!("Failed to remove existing file")));
+        }
+    }
+
     // get data stream
     let body_reader = StreamReader::new(
         request
@@ -62,6 +73,10 @@ pub async fn upload_handler(
 
     // copy the body into the file (streaming)
     tokio::io::copy(&mut body_reader, &mut file).await?;
+
+    // close the file
+    file.flush().await?;
+    drop(file);
 
     // make file executable
     tokio::fs::set_permissions(executable.path(), Permissions::from_mode(0o755)).await?;
