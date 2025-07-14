@@ -113,7 +113,7 @@ impl Service {
             Ok(child) => child,
             Err(e) => {
                 self.state = ServiceState::Error;
-                self.error = Some(format!("Failed to start service: {:?}", e));
+                self.error = Some(format!("Failed to start service: {e:?}"));
                 return;
             }
         };

@@ -55,7 +55,7 @@ impl User {
 impl Display for User {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            User::Anonymous(id) => write!(f, "Anonymous({})", id),
+            User::Anonymous(id) => write!(f, "Anonymous({id})"),
             User::GitHub(user) => write!(f, "GitHub({})", user.login),
         }
     }

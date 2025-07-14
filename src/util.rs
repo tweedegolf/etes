@@ -41,7 +41,7 @@ pub fn sha256(input: &str) -> String {
     hasher
         .finalize()
         .iter()
-        .map(|b| format!("{:02x}", b).to_string())
+        .map(|b| format!("{b:02x}").to_string())
         .collect::<Vec<String>>()
         .join("")
 }

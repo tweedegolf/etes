@@ -64,7 +64,7 @@ pub async fn upload_handler(
         request
             .into_body()
             .into_data_stream()
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err)),
+            .map_err(io::Error::other),
     );
 
     futures::pin_mut!(body_reader);

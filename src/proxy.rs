@@ -83,7 +83,7 @@ pub async fn handler(
         .map(|v| v.as_str())
         .unwrap_or(path);
 
-    let uri = format!("http://127.0.0.1:{}{path_query}", port);
+    let uri = format!("http://127.0.0.1:{port}{path_query}");
     *req.uri_mut() = Uri::try_from(uri).unwrap();
 
     // Forward the request to the service

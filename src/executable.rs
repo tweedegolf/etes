@@ -37,9 +37,9 @@ pub struct Executable {
 impl Executable {
     pub fn from_commit(commit_hash: CommitHash, trigger_hash: CommitHash) -> Self {
         let path = if commit_hash == trigger_hash {
-            format!("./bin/{}.bin", commit_hash)
+            format!("./bin/{commit_hash}.bin")
         } else {
-            format!("./bin/{}_{}.bin", trigger_hash, commit_hash)
+            format!("./bin/{trigger_hash}_{commit_hash}.bin")
         };
 
         Self {

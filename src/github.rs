@@ -293,7 +293,7 @@ pub async fn refresh_github_data(state: AppState) -> Result<()> {
             Err(e) => {
                 state.channel.send(Event::Error {
                     user,
-                    message: format!("Failed to fetch GitHub data: {}", e),
+                    message: format!("Failed to fetch GitHub data: {e}"),
                 });
             }
         }

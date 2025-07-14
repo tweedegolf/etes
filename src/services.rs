@@ -31,9 +31,7 @@ impl ServiceManager {
     pub fn get_state(&self) -> Vec<ServiceData> {
         let services = self.services.read();
 
-        let mut services = services
-            .iter()
-            .map(|(_, service)| service.into())
+        let mut services = services.values().map(|service| service.into())
             .collect::<Vec<ServiceData>>();
 
         services.sort_by(|a, b| b.created_at.cmp(&a.created_at));
@@ -97,7 +95,7 @@ impl ServiceManager {
             info!("Checking ({i}) service on port {}", port);
 
             if let Ok(response) = client
-                .get(format!("http://127.0.0.1:{}/", port))
+                .get(format!("http://127.0.0.1:{port}/"))
                 .send()
                 .await
             {
@@ -253,7 +251,7 @@ impl ServiceManager {
                 if let Err(e) = self.wait_for_startup(name).await {
                     error!("Failed to start service {}: {:?}", name, e);
                     state.channel.send(Event::Error {
-                        message: format!("Failed to start service: {}", e),
+                        message: format!("Failed to start service: {e}"),
                         user,
                     });
                 } else {
@@ -266,7 +264,7 @@ impl ServiceManager {
             Err(e) => {
                 error!("Failed to start service: {}", e);
                 state.channel.send(Event::Error {
-                    message: format!("Failed to start service: {}", e),
+                    message: format!("Failed to start service: {e}"),
                     user,
                 });
 
