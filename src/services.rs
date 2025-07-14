@@ -31,7 +31,9 @@ impl ServiceManager {
     pub fn get_state(&self) -> Vec<ServiceData> {
         let services = self.services.read();
 
-        let mut services = services.values().map(|service| service.into())
+        let mut services = services
+            .values()
+            .map(|service| service.into())
             .collect::<Vec<ServiceData>>();
 
         services.sort_by(|a, b| b.created_at.cmp(&a.created_at));
@@ -94,11 +96,7 @@ impl ServiceManager {
         for i in 0..10 {
             info!("Checking ({i}) service on port {}", port);
 
-            if let Ok(response) = client
-                .get(format!("http://127.0.0.1:{port}/"))
-                .send()
-                .await
-            {
+            if let Ok(response) = client.get(format!("http://127.0.0.1:{port}/")).send().await {
                 if response.status().is_success() {
                     self.set_service_state(name, ServiceState::Running, None);
 
