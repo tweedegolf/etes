@@ -1,4 +1,4 @@
-use rand::{Rng, distributions::Alphanumeric};
+use rand::{Rng, distr::Alphanumeric};
 use sha2::Digest;
 use tokio::net::TcpListener;
 
@@ -26,7 +26,7 @@ pub fn is_valid_hash(hash: &str) -> bool {
 
 // Generate a random string
 pub fn random_string() -> String {
-    rand::thread_rng()
+    rand::rng()
         .sample_iter(&Alphanumeric)
         .take(24)
         .map(char::from)
@@ -55,11 +55,11 @@ pub fn sha512(input: &str) -> [u8; 64] {
 
 // Get a random name from a list of words
 pub fn get_random_name(words: &[String]) -> String {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut name = Vec::new();
 
     while name.len() < 3 {
-        let word = words[rng.gen_range(0..words.len())].as_str();
+        let word = words[rng.random_range(0..words.len())].as_str();
 
         if !name.contains(&word) {
             name.push(word);

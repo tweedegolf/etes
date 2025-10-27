@@ -52,11 +52,11 @@ pub async fn upload_handler(
     let executable = Executable::from_commit(build_hash.clone(), trigger_hash.clone());
 
     // delete the file if it already exists
-    if executable.path().exists() {
-        if let Err(err) = tokio::fs::remove_file(executable.path()).await {
-            error!("Failed to remove existing file: {err}");
-            return Err(AppError::Server(anyhow!("Failed to remove existing file")));
-        }
+    if executable.path().exists()
+        && let Err(err) = tokio::fs::remove_file(executable.path()).await
+    {
+        error!("Failed to remove existing file: {err}");
+        return Err(AppError::Server(anyhow!("Failed to remove existing file")));
     }
 
     // get data stream

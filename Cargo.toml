@@ -11,15 +11,15 @@ axum-extra = { version = "0.10", default-features = false, features = [
 ] }
 bytes = "1.8"
 chrono = { version = "0.4", features = ["serde"] }
-config = "0.14"
-constant_time_eq = "0.3"
+config = "0.15"
+constant_time_eq = "0.4"
 cookie = "0.18"
 futures = "0.3"
 hyper = { version = "1.0", features = ["full"] }
 hyper-util = { version = "0.1", features = ["client-legacy"] }
 oauth2 = "4.4"
 parking_lot = "0.12"
-rand = "0.8"
+rand = "0.9"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls-webpki-roots",
@@ -28,7 +28,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
 structstruck = "0.5"
-sysinfo = "0.32"
+sysinfo = "0.37"
 tokio = { version = "1", features = ["full", "rt-multi-thread"] }
 tokio-util = "0.7"
 tracing = "0.1"

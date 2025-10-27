@@ -59,13 +59,10 @@ async fn handle_socket(mut socket: WebSocket, user: User, state: AppState) {
                 }
             }
             Ok(event) = receiver.recv() => {
-                if event.should_forward(&user) {
-                    if let Ok(msg) = serde_json::to_string(&event) {
-                        if let Err(e) = socket.send(Message::Text(msg.into())).await {
+                if event.should_forward(&user) && let Ok(msg) = serde_json::to_string(&event) && let Err(e) = socket.send(Message::Text(msg.into())).await {
                             warn!("Socket error {e}, user {user}");
                             break;
-                        }
-                    }
+
                 }
             }
             else => break,

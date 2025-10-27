@@ -10,5 +10,6 @@ admins = ["example"]
 api_key = "more-secret-than-this"
 session_key = "more-entropy-than-this"
 command_args = ["{port}"]
+command_env = {"FOO" = "bar", "BAR" = "foo"}
 favicon = "🙂"
 words = ['foo', 'bar', 'baz']

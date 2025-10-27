@@ -68,10 +68,10 @@ impl ServiceManager {
             info!("Service {index}/{}: {}", config.max_services, s.name);
             if index >= config.max_services {
                 info!("Stopping service {}", s.name);
-                if let Some(removed_service) = self.services.write().remove(&s.name) {
-                    if let Err(e) = removed_service.stop() {
-                        error!("Failed to stop service {}: {:?}", name, e);
-                    }
+                if let Some(removed_service) = self.services.write().remove(&s.name)
+                    && let Err(e) = removed_service.stop()
+                {
+                    error!("Failed to stop service {}: {:?}", name, e);
                 }
             }
         }
@@ -96,12 +96,12 @@ impl ServiceManager {
         for i in 0..10 {
             info!("Checking ({i}) service on port {}", port);
 
-            if let Ok(response) = client.get(format!("http://127.0.0.1:{port}/")).send().await {
-                if response.status().is_success() {
-                    self.set_service_state(name, ServiceState::Running, None);
+            if let Ok(response) = client.get(format!("http://127.0.0.1:{port}/")).send().await
+                && response.status().is_success()
+            {
+                self.set_service_state(name, ServiceState::Running, None);
 
-                    return Ok(());
-                }
+                return Ok(());
             }
 
             tokio::time::sleep(Duration::from_secs(1)).await;
@@ -195,10 +195,10 @@ impl ServiceManager {
             return;
         }
 
-        if let Some(service) = self.remove_service(name) {
-            if let Err(e) = service.stop() {
-                error!("Failed to stop service {}: {:?}", name, e);
-            }
+        if let Some(service) = self.remove_service(name)
+            && let Err(e) = service.stop()
+        {
+            error!("Failed to stop service {}: {:?}", name, e);
         }
 
         state.channel.send(Event::ServiceState {

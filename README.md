@@ -42,6 +42,7 @@ Environment variables overwrite any options from the configuration file and shou
 - `session_key`: Session key for cookies
 - `api_key`: API key for binary uploads
 - `command_args`: Arguments passed to the binary, use {port} to interpolate the port number
+- `command_env`: Environment variables passed to the binary
 - `favicon`: Emoji favicon or letter
 - `words`: List of words to combine into a unique service name
 - `admins`: Github user names / handles of admins

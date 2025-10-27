@@ -103,9 +103,13 @@ impl Service {
             .map(|arg| arg.replace("{port}", &self.port.to_string()))
             .collect::<Vec<_>>();
 
+        // collect environment variables
+        let env = config.command_env.clone();
+
         // start the service / run the command
         let mut child = match Command::new(self.executable.path())
             .args(args)
+            .envs(env)
             .stderr(std::process::Stdio::inherit())
             .stdout(std::process::Stdio::inherit())
             .spawn()

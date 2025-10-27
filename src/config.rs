@@ -1,4 +1,4 @@
-use std::env;
+use std::{collections::HashMap, env};
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -24,6 +24,8 @@ pub struct Config {
     pub api_key: String,
     // Arguments passed to the binary, use {port} to interpolate the port number
     pub command_args: Vec<String>,
+    // Environment variables passed to the binary
+    pub command_env: HashMap<String, String>,
     // Emoji favicon or letter
     pub favicon: String,
     // List of words to combine into a unique service name
