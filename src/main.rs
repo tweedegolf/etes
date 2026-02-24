@@ -165,10 +165,12 @@ async fn main() -> Result<()> {
 
     let proxy_app: Router = Router::new()
         .fallback(any(proxy::handler))
-        .with_state(state);
+        .with_state(state.clone());
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
-    let proxy_listener = tokio::net::TcpListener::bind("127.0.0.1:3001").await?;
+    let listener_addr = format!("127.0.0.1:{}", state.config.server_port);
+    let proxy_listener_addr = format!("127.0.0.1:{}", state.config.proxy_port);
+    let listener = tokio::net::TcpListener::bind(&listener_addr).await?;
+    let proxy_listener = tokio::net::TcpListener::bind(&proxy_listener_addr).await?;
 
     info!(
         "Starting server on {} and {}",

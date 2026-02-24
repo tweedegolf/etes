@@ -1,10 +1,9 @@
 use anyhow::{Context, anyhow};
 use axum::{
-    RequestExt,
     extract::{Request, State},
+    http::header::HOST,
     response::{Html, IntoResponse, Redirect, Response},
 };
-use axum_extra::extract::Host;
 use hyper::{StatusCode, Uri};
 
 use crate::{
@@ -51,17 +50,17 @@ pub async fn handler(
     mut req: Request,
 ) -> Result<Response, AppError> {
     let host = req
-        .extract_parts::<Host>()
-        .await
+        .headers()
+        .get(HOST)
+        .and_then(|v| v.to_str().ok())
         .context("No request host found")?;
 
     let subdomain = host
-        .0
         .split('.')
         .next()
         .context("Could not determine subdomain")?;
 
-    let domain = host.0.split('.').skip(1).collect::<Vec<&str>>().join(".");
+    let domain = host.split('.').skip(1).collect::<Vec<&str>>().join(".");
 
     if is_valid_hash(subdomain) {
         let user = User::from_request(random_string(), user)?;

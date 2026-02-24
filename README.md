@@ -47,6 +47,12 @@ Environment variables overwrite any options from the configuration file and shou
 - `words`: List of words to combine into a unique service name
 - `admins`: Github user names / handles of admins
 
+### Optional configuration values
+
+- `max_services`: Maximum number of concurrent services (default: 1000)
+- `server_port`: Port for the main HTTP server (default: 3000)
+- `proxy_port`: Port for the proxy server (default: 3001)
+
 An example configuration file can be found in this repository.
 
 ## Uploading a binary
@@ -78,7 +84,7 @@ GitHub action example:
 
 ## Configure reverse proxy for Etes
 
-A reverse proxy that terminates TLS connections should be configured. The base domain should point to port 3000 and all sub-domains should point to port 3001.
+A reverse proxy that terminates TLS connections should be configured. The base domain should point to `server_port` (default 3000) and all sub-domains should point to `proxy_port` (default 3001).
 
 Example using caddy:
 

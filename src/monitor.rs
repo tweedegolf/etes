@@ -2,8 +2,9 @@ use parking_lot::RwLock;
 use serde::Serialize;
 use std::sync::Arc;
 use sysinfo::System;
+use tracing::error;
 
-use crate::{AppState, events::Event};
+use crate::{AppState, events::Event, executable};
 
 #[derive(Clone, Serialize)]
 pub struct MemoryState {
@@ -38,11 +39,19 @@ impl SystemMonitor {
 // Send regular updates to the event manager and thereby the connected clients
 pub async fn send_updates(state: AppState) {
     let mut system = System::new_all();
+    let last_cleanup = std::time::Instant::now();
 
     loop {
+        // if the last cleanup was more than a day ago, run cleanup
+        if last_cleanup.elapsed().as_secs() > 24 * 60 * 60
+            && let Err(e) = executable::remove_unused_executables(state.clone()).await
+        {
+            error!("Failed to remove unused executables: {e:?}");
+        }
+
         system.refresh_all();
 
-        // Store
+        // Store memory state
         state
             .monitor
             .update(system.used_memory(), system.total_memory());

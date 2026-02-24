@@ -34,6 +34,10 @@ pub struct Config {
     pub admins: Vec<String>,
     // Maximum number of concurrent services
     pub max_services: usize,
+    // Port for the main HTTP server
+    pub server_port: u16,
+    // Port for the proxy server
+    pub proxy_port: u16,
 }
 
 impl Config {
@@ -42,6 +46,8 @@ impl Config {
 
         let config: Config = config::Config::builder()
             .set_default("max_services", 1000)?
+            .set_default("server_port", 3000)?
+            .set_default("proxy_port", 3001)?
             .add_source(config::File::with_name(&config_file))
             .add_source(
                 config::Environment::with_prefix("etes")
