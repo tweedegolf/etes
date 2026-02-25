@@ -25,7 +25,7 @@ export default function Commits({ state, dispatch }: CommitsProps) {
                 <Table.Tr>
                   <Table.Th scope="row">Message</Table.Th>
                   <Table.Td maw="180px">
-                    <Anchor href={commit.url} target="_blank" style={{ whiteSpace: 'nowrap' }}>
+                    <Anchor href={commit.url} target="_blank" className="no-wrap">
                       <Tooltip label={commit.message}>
                         <Text size="sm" truncate="end">
                           {commit.message}

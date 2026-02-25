@@ -25,7 +25,7 @@ export default function Releases({ state, dispatch }: ReleasesProps) {
                 <Table.Tr>
                   <Table.Th scope="row">Tag</Table.Th>
                   <Table.Td maw="180px">
-                    <Anchor href={release.url} target="_blank" style={{ whiteSpace: 'nowrap' }}>
+                    <Anchor href={release.url} target="_blank" className="no-wrap">
                       <Text size="sm" truncate="end">
                         {release.tagName}
                       </Text>

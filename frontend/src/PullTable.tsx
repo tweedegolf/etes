@@ -99,7 +99,7 @@ export function PullTable({ state, dispatch }: PullTableProps) {
                 >
                   <Badge
                     variant="outline"
-                    style={{ cursor: 'pointer' }}
+                    className="cursor-pointer"
                     color={statusColor(pull.status)}
                     leftSection={statusIcon(pull.status)}
                   >
