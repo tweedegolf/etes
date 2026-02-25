@@ -40,7 +40,7 @@ export default function DateTime({ date }: { date: string }) {
 
   return (
     <Tooltip label={full}>
-      <time dateTime={date} style={{ cursor: 'default' }}>{timeAgo(new Date(date))}</time>
+      <time dateTime={date} className="cursor-default">{timeAgo(new Date(date))}</time>
     </Tooltip>
   );
 }

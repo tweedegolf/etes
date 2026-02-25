@@ -4,6 +4,9 @@ use axum::{
     Router,
     body::Body,
     extract::FromRef,
+    extract::State,
+    http::{HeaderValue, header, header::CONTENT_SECURITY_POLICY},
+    middleware::{self, Next},
     routing::{any, get, put},
 };
 use cookie::Key;
@@ -117,10 +120,28 @@ impl AppStateContainer {
     }
 }
 
+fn build_csp_header() -> String {
+    [
+        "default-src 'none'",
+        "base-uri 'none'",
+        "frame-ancestors 'none'",
+        "object-src 'none'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' https://avatars.githubusercontent.com",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "manifest-src 'none'",
+        "form-action 'self'",
+    ]
+    .join("; ")
+}
+
 async fn app(with_frontend: bool) -> Result<(AppState, Router)> {
     let state: AppState = AppStateContainer::new()?.into();
 
     let mut app = Router::new()
+        .route("/favicon.svg", get(favicon_svg))
         .route("/etes/login", get(auth::login))
         .route("/etes/logout", get(auth::logout))
         .route("/etes/authorize", get(auth::authorize))
@@ -136,11 +157,40 @@ async fn app(with_frontend: bool) -> Result<(AppState, Router)> {
         let index =
             include_str!("../frontend/index.html").replace("%FAVICON%", &state.config.favicon);
         let frontend = spaxum::load!(&state.config.title).set_html_template(index);
-
         app = app.merge(frontend.router());
+
+        // add CSP for release builds
+        if !cfg!(debug_assertions) {
+            let csp = build_csp_header();
+            let csp_header = HeaderValue::from_str(&csp).expect("CSP header value must be ASCII");
+            app = app.layer(middleware::from_fn(move |req, next: Next| {
+                let csp_header = csp_header.clone();
+                async move {
+                    let mut res = next.run(req).await;
+                    res.headers_mut()
+                        .insert(CONTENT_SECURITY_POLICY, csp_header);
+                    res
+                }
+            }));
+        }
     }
 
     Ok((state, app))
+}
+
+async fn favicon_svg(State(state): State<AppState>) -> impl axum::response::IntoResponse {
+    let svg = format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><text y=\".9em\" font-size=\"90\">{}</text></svg>",
+        state.config.favicon
+    );
+
+    (
+        [(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("image/svg+xml; charset=utf-8"),
+        )],
+        svg,
+    )
 }
 
 #[tokio::main]

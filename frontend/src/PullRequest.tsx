@@ -10,7 +10,7 @@ interface PullRequestProps {
 export function PullRequest({ baseUrl, number, title }: PullRequestProps) {
   const badge = (
     <Anchor href={`${baseUrl}/pull/${number}`} target="_blank">
-      <Badge mr="md" style={{ cursor: 'pointer' }}>#{number}</Badge>
+      <Badge mr="md" className="cursor-pointer">#{number}</Badge>
     </Anchor>
   );
 
