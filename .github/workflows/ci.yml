@@ -12,10 +12,10 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       # build frontend
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 22
           cache-dependency-path: frontend/package-lock.lock
@@ -24,7 +24,7 @@ jobs:
 
       # build backend
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - run: cargo fmt --check
       - run: cargo clippy --all-features -- --deny "warnings"
       - run: cargo test
@@ -45,7 +45,7 @@ jobs:
         working-directory: release
       - run: git tag $TAG
       - run: git push origin $TAG
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         with:
           body: Automatic release, commit ${{ github.sha }}
           tag_name: ${{ env.TAG }}

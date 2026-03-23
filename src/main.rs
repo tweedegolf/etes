@@ -3,8 +3,7 @@ use auth::GithubOauthService;
 use axum::{
     Router,
     body::Body,
-    extract::FromRef,
-    extract::State,
+    extract::{FromRef, State},
     http::{HeaderValue, header, header::CONTENT_SECURITY_POLICY},
     middleware::{self, Next},
     routing::{any, get, put},

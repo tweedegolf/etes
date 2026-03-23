@@ -10,8 +10,8 @@ use axum_extra::extract::{PrivateCookieJar, cookie::Cookie};
 use cookie::{Key, SameSite};
 use hyper::header::{ACCEPT, USER_AGENT};
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
-    TokenResponse, TokenUrl, basic::BasicClient, reqwest::async_http_client,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EndpointNotSet, EndpointSet,
+    RedirectUrl, Scope, TokenResponse, TokenUrl, basic::BasicClient, reqwest as oauth2_reqwest,
 };
 use serde::Deserialize;
 use std::fmt::Debug;
@@ -27,9 +27,13 @@ static GITHUB_TOKEN_URL: &str = "https://github.com/login/oauth/access_token";
 static GITHUB_USER_URL: &str = "https://api.github.com/user";
 static GITHUB_ACCEPT_TYPE: &str = "application/vnd.github+json";
 
+type GithubClient =
+    BasicClient<EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>;
+
 #[derive(Clone)]
 pub struct GithubOauthService {
-    oauth_client: BasicClient,
+    oauth_client: GithubClient,
+    http_client: oauth2_reqwest::Client,
     session_key: Key,
 }
 
@@ -43,18 +47,22 @@ impl GithubOauthService {
     /// Creates a new instance of `GithubOauthService`.
     /// Returns a `Result` containing the `GithubOauthService` instance or an `Error` if there was an error creating the service.
     pub fn new(config: &Config) -> anyhow::Result<Self> {
-        let oauth_client = BasicClient::new(
-            ClientId::new(config.github_client_id.clone()),
-            Some(ClientSecret::new(config.github_client_secret.clone())),
-            AuthUrl::from_url(GITHUB_AUTH_URL.parse()?),
-            Some(TokenUrl::from_url(GITHUB_TOKEN_URL.parse()?)),
-        )
-        .set_redirect_uri(RedirectUrl::from_url(config.authorize_url.parse()?));
+        let oauth_client: GithubClient =
+            BasicClient::new(ClientId::new(config.github_client_id.clone()))
+                .set_client_secret(ClientSecret::new(config.github_client_secret.clone()))
+                .set_auth_uri(AuthUrl::from_url(GITHUB_AUTH_URL.parse()?))
+                .set_token_uri(TokenUrl::from_url(GITHUB_TOKEN_URL.parse()?))
+                .set_redirect_uri(RedirectUrl::from_url(config.authorize_url.parse()?));
+
+        let http_client = oauth2_reqwest::Client::builder()
+            .redirect(oauth2_reqwest::redirect::Policy::none())
+            .build()?;
 
         let session_key: Key = Key::from(&sha512(&config.session_key));
 
         Ok(Self {
             oauth_client,
+            http_client,
             session_key,
         })
     }
@@ -111,7 +119,8 @@ pub(super) async fn login(
     let updated_jar = jar.add(csrf_cookie);
 
     // Return the updated cookie jar and a redirect response to the authorization URL
-    Ok((updated_jar, Redirect::to(auth_url.to_string().as_str())))
+    let auth_url = auth_url.to_string();
+    Ok((updated_jar, Redirect::to(&auth_url)))
 }
 
 /// Handles the logout request.
@@ -174,7 +183,7 @@ pub(super) async fn authorize(
     let token = service
         .oauth_client
         .exchange_code(AuthorizationCode::new(query.code.clone()))
-        .request_async(async_http_client)
+        .request_async(&service.http_client)
         .await
         .context("Invalid token provided")?;
 
@@ -198,21 +207,23 @@ pub(super) async fn authorize(
         return Err(AppError::Client(anyhow!("Invalid CSRF token")));
     }
 
-    // Create a new HTTP client
-    let client = reqwest::Client::new();
-
     // Fetch user data from the GitHub API
-    let user: GitHubUser = client
+    let user_response = service
+        .http_client
         .get(GITHUB_USER_URL)
         .header(ACCEPT, HeaderValue::from_static(GITHUB_ACCEPT_TYPE))
         .header(USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE))
         .bearer_auth(token.access_token().secret())
         .send()
         .await
-        .context("Failed to fetch user data")?
-        .json()
-        .await
-        .context("Failed te deserialize GitHub user data")?;
+        .context("Failed to fetch user data")?;
+    let user: GitHubUser = serde_json::from_slice(
+        &user_response
+            .bytes()
+            .await
+            .context("Failed to read GitHub user response body")?,
+    )
+    .context("Failed te deserialize GitHub user data")?;
 
     // Serialize the user data as a string
     let session_cookie_value = serde_json::to_string(&user)?;

@@ -177,31 +177,34 @@ impl GitHubState {
 
         for edge in root.data.repository.pull_requests.edges {
             let node = edge.node;
-            let commit = node.status_check_rollup.commit;
 
-            let assignees = node
-                .assignees
-                .edges
-                .into_iter()
-                .map(|edge| edge.node)
-                .collect();
+            if let Some(status_check_rollup) = node.status_check_rollup {
+                let commit = status_check_rollup.commit;
 
-            let pull = Pull {
-                number: node.number,
-                created_at: node.created_at,
-                is_draft: node.is_draft,
-                title: node.title,
-                status: node.status_check_rollup.state,
-                assignees,
-                commit: Commit {
-                    date: commit.authored_date,
-                    hash: commit.oid,
-                    message: None,
-                    url: None,
-                },
-            };
+                let assignees = node
+                    .assignees
+                    .edges
+                    .into_iter()
+                    .map(|edge| edge.node)
+                    .collect();
 
-            pulls.push(pull);
+                let pull = Pull {
+                    number: node.number,
+                    created_at: node.created_at,
+                    is_draft: node.is_draft,
+                    title: node.title,
+                    status: status_check_rollup.state,
+                    assignees,
+                    commit: Commit {
+                        date: commit.authored_date,
+                        hash: commit.oid,
+                        message: None,
+                        url: None,
+                    },
+                };
+
+                pulls.push(pull);
+            }
         }
 
         Ok(GitHubState {
@@ -260,13 +263,13 @@ structstruck::strike! {
                                     node: Assignee,
                                 }>,
                             },
-                            status_check_rollup: pub struct StatusCheckRollup {
+                            status_check_rollup: Option<pub struct StatusCheckRollup {
                                 pub commit: struct CheckCommit {
                                     pub authored_date: DateTime<Utc>,
                                     pub oid: CommitHash,
                                 },
                                 pub state: WorkflowStatus,
-                            },
+                            }>,
                         }
                     }>,
                 }
