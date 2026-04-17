@@ -36,7 +36,7 @@ impl ServiceManager {
             .map(|service| service.into())
             .collect::<Vec<ServiceData>>();
 
-        services.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        services.sort_by_key(|s| std::cmp::Reverse(s.created_at));
 
         services
     }
@@ -91,13 +91,14 @@ impl ServiceManager {
 
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(1))
+            .redirect(reqwest::redirect::Policy::none())
             .build()?;
 
         for i in 0..10 {
             info!("Checking ({i}) service on port {}", port);
 
             if let Ok(response) = client.get(format!("http://127.0.0.1:{port}/")).send().await
-                && response.status().is_success()
+                && (response.status().is_success() || response.status().is_redirection())
             {
                 self.set_service_state(name, ServiceState::Running, None);
 

@@ -91,11 +91,22 @@ pub async fn upload_handler(
         executables: state.services.get_executables(),
     });
 
-    if state.github.update(state.config).await.is_ok() {
-        state.channel.send(Event::GithubState {
-            payload: state.github.get_state(),
-        });
-    }
+    // update GitHub state 1 minute after the upload
+    let delayed_state = state.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+
+        if delayed_state
+            .github
+            .update(delayed_state.config)
+            .await
+            .is_ok()
+        {
+            delayed_state.channel.send(Event::GithubState {
+                payload: delayed_state.github.get_state(),
+            });
+        }
+    });
 
     Ok((
         StatusCode::CREATED,
