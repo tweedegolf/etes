@@ -1,3 +1,4 @@
+use axum::http::HeaderMap;
 use rand::{RngExt, distr::Alphanumeric};
 use sha2::Digest;
 use tokio::net::TcpListener;
@@ -51,6 +52,40 @@ pub fn sha512(input: &str) -> [u8; 64] {
     hasher.update(input.as_bytes());
 
     hasher.finalize().into()
+}
+
+// Detect the request scheme from X-Forwarded-Proto or Forwarded headers,
+// falling back to http when neither indicates https.
+pub fn detect_scheme(headers: &HeaderMap) -> &'static str {
+    if let Some(proto) = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        && let Some(first) = proto.split(',').next()
+        && first.trim().eq_ignore_ascii_case("https")
+    {
+        return "https";
+    }
+
+    if let Some(forwarded) = headers.get("forwarded").and_then(|v| v.to_str().ok()) {
+        let first = forwarded.split(',').next().unwrap_or("");
+        for part in first.split(';') {
+            let part = part.trim();
+            if let Some(value) = part.strip_prefix("proto=").or(part.strip_prefix("Proto="))
+                && value.trim_matches('"').eq_ignore_ascii_case("https")
+            {
+                return "https";
+            }
+        }
+    }
+
+    "http"
+}
+
+// Build the public base URL of a service from the request host header,
+// the detected scheme and the service name (which becomes the subdomain).
+pub fn build_base_url(scheme: &str, host: &str, name: &str) -> String {
+    let domain = host.split('.').skip(1).collect::<Vec<&str>>().join(".");
+    format!("{scheme}://{name}.{domain}")
 }
 
 // Get a random name from a list of words

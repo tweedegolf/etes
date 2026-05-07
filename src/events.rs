@@ -23,6 +23,8 @@ pub enum Event {
         executable: ExecutableData,
         name: String,
         user: User,
+        #[serde(default)]
+        base_url: String,
     },
     StopService {
         name: String,
@@ -97,14 +99,35 @@ impl Event {
         match self {
             Event::GithubRefresh { .. } => Event::GithubRefresh { user },
             Event::StartService {
-                executable, name, ..
+                executable,
+                name,
+                base_url,
+                ..
             } => Event::StartService {
                 executable,
                 name,
                 user,
+                base_url,
             },
             Event::StopService { name, .. } => Event::StopService { name, user },
             Event::Error { message, .. } => Event::Error { message, user },
+            event => event,
+        }
+    }
+
+    pub fn with_base_url(self, base_url: String) -> Self {
+        match self {
+            Event::StartService {
+                executable,
+                name,
+                user,
+                ..
+            } => Event::StartService {
+                executable,
+                name,
+                user,
+                base_url,
+            },
             event => event,
         }
     }

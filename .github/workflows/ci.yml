@@ -45,11 +45,13 @@ jobs:
         working-directory: release
       - run: git tag $TAG
       - run: git push origin $TAG
-      - uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
-        with:
-          body: Automatic release, commit ${{ github.sha }}
-          tag_name: ${{ env.TAG }}
-          target_commitish: "${{ github.sha }}"
-          files: release/*
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: Version ${{ env.TAG }}
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "Version $TAG" \
+            --notes "Automatic release, commit $GITHUB_SHA" \
+            release/*

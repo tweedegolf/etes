@@ -10,7 +10,7 @@ use crate::{
     AppState,
     error::AppError,
     user::{GitHubUser, User},
-    util::{get_random_name, is_valid_hash, random_string},
+    util::{detect_scheme, get_random_name, is_valid_hash, random_string},
 };
 
 fn not_found(domain: &str) -> Response {
@@ -23,6 +23,7 @@ fn not_found(domain: &str) -> Response {
 
 async fn redirect_to_service(
     state: AppState,
+    scheme: &str,
     domain: &str,
     user: User,
     commit_hash: &str,
@@ -30,18 +31,25 @@ async fn redirect_to_service(
     // find exsisting service
     if let Some(name) = state.services.get_name_by_commit(commit_hash) {
         // redirect to service
-        return Ok(Redirect::temporary(&format!("https://{name}.{domain}")).into_response());
+        return Ok(Redirect::temporary(&format!("{scheme}://{name}.{domain}")).into_response());
     }
 
     // start up new service
     let name = get_random_name(&state.config.words);
+    let base_url = format!("{scheme}://{name}.{domain}");
     state
         .services
-        .start_service(&name, &commit_hash.into(), user, state.clone())
+        .start_service(
+            &name,
+            &commit_hash.into(),
+            user,
+            base_url.clone(),
+            state.clone(),
+        )
         .await;
 
     // redirect to service
-    Ok(Redirect::temporary(&format!("https://{name}.{domain}")).into_response())
+    Ok(Redirect::temporary(&base_url).into_response())
 }
 
 pub async fn handler(
@@ -64,8 +72,9 @@ pub async fn handler(
 
     if is_valid_hash(subdomain) {
         let user = User::from_request(random_string(), user)?;
+        let scheme = detect_scheme(req.headers());
 
-        return redirect_to_service(state, &domain, user, subdomain).await;
+        return redirect_to_service(state, scheme, &domain, user, subdomain).await;
     }
 
     // Check if the subdomain is a valid service

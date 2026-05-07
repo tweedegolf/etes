@@ -1,8 +1,10 @@
+use anyhow::Context;
 use axum::{
     extract::{
         Path, State, WebSocketUpgrade,
         ws::{Message, WebSocket},
     },
+    http::{HeaderMap, header::HOST},
     response::IntoResponse,
 };
 use tracing::{error, info, warn};
@@ -12,6 +14,7 @@ use crate::{
     error::AppError,
     events::Event,
     user::{GitHubUser, User},
+    util::{build_base_url, detect_scheme},
 };
 
 pub async fn ws_handler(
@@ -19,14 +22,28 @@ pub async fn ws_handler(
     Path(caller): Path<String>,
     State(state): State<AppState>,
     user: Option<GitHubUser>,
+    headers: HeaderMap,
 ) -> Result<impl IntoResponse, AppError> {
     let user = User::from_request(caller, user)?;
 
-    Ok(ws.on_upgrade(|socket| handle_socket(socket, user, state)))
+    let host = headers
+        .get(HOST)
+        .and_then(|v| v.to_str().ok())
+        .context("No request host found")?
+        .to_string();
+    let scheme = detect_scheme(&headers).to_string();
+
+    Ok(ws.on_upgrade(move |socket| handle_socket(socket, user, state, scheme, host)))
 }
 
 // Route messags between the internal bus and the websocket
-async fn handle_socket(mut socket: WebSocket, user: User, state: AppState) {
+async fn handle_socket(
+    mut socket: WebSocket,
+    user: User,
+    state: AppState,
+    scheme: String,
+    host: String,
+) {
     let mut receiver = state.channel.get_receiver();
 
     loop {
@@ -40,7 +57,14 @@ async fn handle_socket(mut socket: WebSocket, user: User, state: AppState) {
                         };
 
                         if event.is_client_event() {
-                            state.channel.send(event.update_user(user.clone()));
+                            let event = event.update_user(user.clone());
+                            let base_url = match &event {
+                                Event::StartService { name, .. } => {
+                                    build_base_url(&scheme, &host, name)
+                                }
+                                _ => String::new(),
+                            };
+                            state.channel.send(event.with_base_url(base_url));
                         } else {
                             error!("Invalid client event: {msg}");
                         }

@@ -47,6 +47,7 @@ impl ServiceManager {
         name: &str,
         executable: &Executable,
         creator: User,
+        base_url: String,
         config: &Config,
     ) -> anyhow::Result<String> {
         if self.services.read().contains_key(name) {
@@ -59,7 +60,7 @@ impl ServiceManager {
         };
 
         // Start and add the service
-        service.start(config);
+        service.start(config, base_url);
         let error = service.error();
         self.services.write().insert(name.to_string(), service);
 
@@ -213,6 +214,7 @@ impl ServiceManager {
         name: &str,
         commit_hash: &CommitHash,
         user: User,
+        base_url: String,
         state: AppState,
     ) {
         // Check if the commit exists
@@ -239,7 +241,7 @@ impl ServiceManager {
 
         // Add and start the service
         match self
-            .add_service(name, &executable, user.clone(), state.config)
+            .add_service(name, &executable, user.clone(), base_url, state.config)
             .await
         {
             Ok(_) => {
@@ -293,12 +295,13 @@ pub async fn start_and_stop_services(state: AppState) -> Result<()> {
                 executable,
                 name,
                 user,
+                base_url,
             } => {
                 let state = state.clone();
                 tokio::task::spawn(async move {
                     state
                         .services
-                        .start_service(&name, executable.hash(), user, state.clone())
+                        .start_service(&name, executable.hash(), user, base_url, state.clone())
                         .await;
                 });
             }
@@ -353,6 +356,7 @@ mod test {
             executable: (&executable).into(),
             name: "foobar".to_string(),
             user: User::Anonymous("frank".to_string()),
+            base_url: "http://foobar.example.com".to_string(),
         });
 
         let event = receiver.recv().await.unwrap();

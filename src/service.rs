@@ -95,7 +95,7 @@ impl Service {
         self.error.clone()
     }
 
-    pub fn start(&mut self, config: &Config) {
+    pub fn start(&mut self, config: &Config, base_url: String) {
         // collect command args and replace port number
         let args = config
             .command_args
@@ -103,8 +103,9 @@ impl Service {
             .map(|arg| arg.replace("{port}", &self.port.to_string()))
             .collect::<Vec<_>>();
 
-        // collect environment variables
-        let env = config.command_env.clone();
+        // collect environment variables, including the public base URL
+        let mut env = config.command_env.clone();
+        env.insert("BASE_URL".to_string(), base_url);
 
         // start the service / run the command
         let mut child = match Command::new(self.executable.path())
