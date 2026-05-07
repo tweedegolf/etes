@@ -10,7 +10,7 @@ use crate::{
     AppState,
     error::AppError,
     user::{GitHubUser, User},
-    util::{detect_scheme, get_random_name, is_valid_hash, random_string},
+    util::{build_base_url, detect_scheme, get_random_name, is_valid_hash, random_string},
 };
 
 fn not_found(domain: &str) -> Response {
@@ -24,19 +24,19 @@ fn not_found(domain: &str) -> Response {
 async fn redirect_to_service(
     state: AppState,
     scheme: &str,
-    domain: &str,
     user: User,
     commit_hash: &str,
 ) -> Result<Response, AppError> {
     // find exsisting service
     if let Some(name) = state.services.get_name_by_commit(commit_hash) {
         // redirect to service
-        return Ok(Redirect::temporary(&format!("{scheme}://{name}.{domain}")).into_response());
+        let base_url = build_base_url(scheme, &state.config.service_domain, &name);
+        return Ok(Redirect::temporary(&base_url).into_response());
     }
 
     // start up new service
     let name = get_random_name(&state.config.words);
-    let base_url = format!("{scheme}://{name}.{domain}");
+    let base_url = build_base_url(scheme, &state.config.service_domain, &name);
     state
         .services
         .start_service(
@@ -68,19 +68,17 @@ pub async fn handler(
         .next()
         .context("Could not determine subdomain")?;
 
-    let domain = host.split('.').skip(1).collect::<Vec<&str>>().join(".");
-
     if is_valid_hash(subdomain) {
         let user = User::from_request(random_string(), user)?;
         let scheme = detect_scheme(req.headers());
 
-        return redirect_to_service(state, scheme, &domain, user, subdomain).await;
+        return redirect_to_service(state, scheme, user, subdomain).await;
     }
 
     // Check if the subdomain is a valid service
     let Some(port) = state.services.get_port(subdomain) else {
         // Return a 404 response, with a link to the homepage
-        return Ok(not_found(&domain));
+        return Ok(not_found(&state.config.service_domain));
     };
 
     // Update the request URI to point to the service

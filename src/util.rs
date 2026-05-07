@@ -81,11 +81,10 @@ pub fn detect_scheme(headers: &HeaderMap) -> &'static str {
     "http"
 }
 
-// Build the public base URL of a service from the request host header,
+// Build the public base URL of a service from the configured service domain,
 // the detected scheme and the service name (which becomes the subdomain).
-pub fn build_base_url(scheme: &str, host: &str, name: &str) -> String {
-    let domain = host.split('.').skip(1).collect::<Vec<&str>>().join(".");
-    format!("{scheme}://{name}.{domain}")
+pub fn build_base_url(scheme: &str, service_domain: &str, name: &str) -> String {
+    format!("{scheme}://{name}.{service_domain}")
 }
 
 // Get a random name from a list of words

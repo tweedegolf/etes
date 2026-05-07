@@ -39,6 +39,7 @@ Environment variables overwrite any options from the configuration file and shou
 - `github_client_id`: GitHub Oauth client ID
 - `github_client_secret`: GitHub Oauth client secret
 - `authorize_url`: OAuth callback URL
+- `service_domain`: Parent domain under which services are served (e.g. `example.com`); service URLs are built as `https://{name}.{service_domain}`
 - `session_key`: Session key for cookies
 - `api_key`: API key for binary uploads
 - `command_args`: Arguments passed to the binary, use {port} to interpolate the port number

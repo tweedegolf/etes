@@ -18,6 +18,9 @@ pub struct Config {
     pub github_client_secret: String,
     // OAuth callback URL
     pub authorize_url: String,
+    // Parent domain under which services are served (e.g. "example.com").
+    // The full service URL is built as `{scheme}://{name}.{service_domain}`.
+    pub service_domain: String,
     // Session key for cookies
     pub session_key: String,
     // API key for binary uploads
