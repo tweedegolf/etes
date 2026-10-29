@@ -132,6 +132,7 @@ export function useEtes() {
     baseUrl: '',
     github: {
       commits: [],
+      branches: [],
       releases: [],
       pulls: [],
     },

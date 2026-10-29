@@ -5,6 +5,7 @@ github_repo = "etes"
 max_services = 10
 server_port = 3000
 proxy_port = 3001
+branches = ["major-release"]
 github_client_id = "some-oauth-client-id"
 github_client_secret = "some-oauth-secret"
 authorize_url = "https://example.com/etes/authorize"

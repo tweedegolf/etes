@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{AppState, Config, events::Event};
 
@@ -40,6 +40,13 @@ pub struct Release {
     url: String,
     tag_name: String,
     created_at: DateTime<Utc>,
+    commit: Commit,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Branch {
+    name: String,
     commit: Commit,
 }
 
@@ -98,6 +105,7 @@ impl GitHubStateManager {
 #[serde(rename_all = "camelCase")]
 pub struct GitHubState {
     commits: Vec<Commit>,
+    branches: Vec<Branch>,
     releases: Vec<Release>,
     pulls: Vec<Pull>,
 }
@@ -107,7 +115,8 @@ impl GitHubState {
     pub async fn fetch(config: &Config) -> anyhow::Result<Self> {
         let request_body = include_str!("query.graphql")
             .replace("$owner", &config.github_owner)
-            .replace("$name", &config.github_repo);
+            .replace("$name", &config.github_repo)
+            .replace("$branches", &branch_query(&config.branches));
 
         let response = reqwest::Client::new()
             .post("https://api.github.com/graphql")
@@ -119,14 +128,26 @@ impl GitHubState {
 
         let root: GraphRoot = response.json().await?;
 
-        GitHubState::from_graphql(root).await
+        GitHubState::from_graphql(root, &config.branches)
     }
 
-    // Fetch commit hashes of releases and pull requests with check status success
+    // Commit hashes that should keep their executable: the latest default branch
+    // commit, the latest commit of each configured branch, releases and pull
+    // requests with check status success
     pub fn get_commit_hashes(&self) -> Vec<String> {
-        self.releases
+        self.commits
             .iter()
-            .map(|release| release.commit.hash.clone())
+            .map(|commit| commit.hash.clone())
+            .chain(
+                self.branches
+                    .iter()
+                    .map(|branch| branch.commit.hash.clone()),
+            )
+            .chain(
+                self.releases
+                    .iter()
+                    .map(|release| release.commit.hash.clone()),
+            )
             .chain(
                 self.pulls
                     .iter()
@@ -137,10 +158,11 @@ impl GitHubState {
     }
 
     // Convert data returned from graphql to GitHubState
-    async fn from_graphql(root: GraphRoot) -> anyhow::Result<Self> {
+    fn from_graphql(root: GraphRoot, branch_names: &[String]) -> anyhow::Result<Self> {
         let mut pulls = Vec::new();
         let mut releases = Vec::new();
         let mut commits = Vec::new();
+        let mut branches = Vec::new();
 
         for edge in root.data.repository.default_branch_ref.target.history.edges {
             let node = edge.node;
@@ -153,6 +175,29 @@ impl GitHubState {
             };
 
             commits.push(commit);
+        }
+
+        // Branch refs are requested as aliased fields `branch_{index}`, in the
+        // order of the configured branch names; a missing branch resolves to null
+        let mut refs = root.data.repository.branch_refs;
+
+        for (index, name) in branch_names.iter().enumerate() {
+            let Some(Some(branch_ref)) = refs.remove(&branch_alias(index)) else {
+                tracing::warn!("Configured branch not found on GitHub: {name}");
+                continue;
+            };
+
+            let node = branch_ref.target;
+
+            branches.push(Branch {
+                name: branch_ref.name,
+                commit: Commit {
+                    date: node.committed_date,
+                    hash: node.oid,
+                    message: Some(node.message_headline),
+                    url: Some(node.url),
+                },
+            });
         }
 
         for edge in root.data.repository.releases.edges {
@@ -209,10 +254,36 @@ impl GitHubState {
 
         Ok(GitHubState {
             commits,
+            branches,
             releases,
             pulls,
         })
     }
+}
+
+fn branch_alias(index: usize) -> String {
+    format!("branch_{index}")
+}
+
+// Build aliased `ref` fields for every configured branch, for inclusion in the
+// repository selection of the GraphQL query
+fn branch_query(branch_names: &[String]) -> String {
+    branch_names
+        .iter()
+        .enumerate()
+        .map(|(index, name)| {
+            // serde_json produces a quoted and escaped string literal, which is
+            // also valid GraphQL string syntax
+            let qualified_name = serde_json::to_string(&format!("refs/heads/{name}"))
+                .expect("string serialization cannot fail");
+
+            format!(
+                "{alias}: ref(qualifiedName: {qualified_name}) {{ name target {{ ... on Commit {{ oid url committedDate messageHeadline }} }} }}",
+                alias = branch_alias(index)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 // Returned data structure from the graphql query
@@ -236,6 +307,13 @@ structstruck::strike! {
                         },
                     },
                 },
+
+                // Aliased `branch_{index}` ref fields, see `branch_query`
+                #[serde(flatten)]
+                branch_refs: HashMap<String, Option<struct BranchRef {
+                    name: String,
+                    target: BranchNode,
+                }>>,
 
                 releases: struct Releases {
                     edges: Vec<struct ReleaseEdge {
@@ -317,5 +395,48 @@ mod tests {
 
         assert!(!state.releases.is_empty());
         assert!(!state.pulls.is_empty());
+    }
+
+    #[test]
+    fn test_branch_query() {
+        assert_eq!(branch_query(&[]), "");
+
+        let query = branch_query(&["develop".to_string(), "release/1.0".to_string()]);
+
+        assert!(query.contains("branch_0: ref(qualifiedName: \"refs/heads/develop\")"));
+        assert!(query.contains("branch_1: ref(qualifiedName: \"refs/heads/release/1.0\")"));
+    }
+
+    #[test]
+    fn test_from_graphql_branches() {
+        let root: GraphRoot = serde_json::from_value(serde_json::json!({
+            "data": {
+                "repository": {
+                    "defaultBranchRef": { "target": { "history": { "edges": [] } } },
+                    "branch_0": {
+                        "name": "develop",
+                        "target": {
+                            "oid": "a".repeat(40),
+                            "committedDate": "2026-01-01T00:00:00Z",
+                            "url": "https://github.com/x/y/commit/a",
+                            "messageHeadline": "Develop commit"
+                        }
+                    },
+                    "branch_1": null,
+                    "releases": { "edges": [] },
+                    "pullRequests": { "edges": [] }
+                }
+            }
+        }))
+        .unwrap();
+
+        let state =
+            GitHubState::from_graphql(root, &["develop".to_string(), "missing".to_string()])
+                .unwrap();
+
+        assert_eq!(state.branches.len(), 1);
+        assert_eq!(state.branches[0].name, "develop");
+        assert_eq!(state.branches[0].commit.hash, "a".repeat(40));
+        assert_eq!(state.get_commit_hashes(), vec!["a".repeat(40)]);
     }
 }

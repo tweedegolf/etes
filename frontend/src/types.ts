@@ -15,6 +15,11 @@ export interface Executable {
   triggerHash: string;
 }
 
+export interface Branch {
+  name: string;
+  commit: Commit;
+}
+
 export interface Release {
   name: string;
   url: string;
@@ -42,6 +47,7 @@ export interface Pull {
 
 export interface GitHubState {
   commits: Commit[],
+  branches: Branch[],
   releases: Release[],
   pulls: Pull[];
 }
