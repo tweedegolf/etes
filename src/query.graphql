@@ -3,7 +3,7 @@ query {
     defaultBranchRef{
       target{
         ... on Commit{
-          history(first:2){
+          history(first:1){
             edges{
               node{
                 ... on Commit{
@@ -18,8 +18,9 @@ query {
         }
       }
     }
+    $branches
     releases(
-      first: 2
+      first: 1
       orderBy: {field: CREATED_AT, direction: DESC}
     ) {
       edges {
