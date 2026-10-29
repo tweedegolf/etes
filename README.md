@@ -53,6 +53,7 @@ Environment variables overwrite any options from the configuration file and shou
 - `max_services`: Maximum number of concurrent services (default: 1000)
 - `server_port`: Port for the main HTTP server (default: 3000)
 - `proxy_port`: Port for the proxy server (default: 3001)
+- `branches`: List of branch names (besides the default branch) whose latest commit is shown in the top bar, next to the latest release and main build. Executables for these commits are never cleaned up (default: `[]`)
 
 An example configuration file can be found in this repository.
 

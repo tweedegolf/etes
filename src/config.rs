@@ -41,6 +41,10 @@ pub struct Config {
     pub server_port: u16,
     // Port for the proxy server
     pub proxy_port: u16,
+    // Branch names (besides the default branch) whose latest commit is shown
+    // in the top bar and whose executable is never cleaned up
+    #[serde(default)]
+    pub branches: Vec<String>,
 }
 
 impl Config {
