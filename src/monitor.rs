@@ -38,7 +38,10 @@ impl SystemMonitor {
 
 // Send regular updates to the event manager and thereby the connected clients
 pub async fn send_updates(state: AppState) {
-    let mut system = System::new_all();
+    // On failure keep looping: the executable cleanup below must still run
+    let mut system = System::new_all()
+        .inspect_err(|e| error!("Failed to initialize system monitor: {e:?}"))
+        .ok();
     let mut last_cleanup = std::time::Instant::now();
 
     loop {
@@ -50,18 +53,20 @@ pub async fn send_updates(state: AppState) {
             last_cleanup = std::time::Instant::now();
         }
 
-        system.refresh_all();
+        if let Some(system) = &mut system {
+            system.refresh_all();
 
-        // Store memory state
-        state
-            .monitor
-            .update(system.used_memory(), system.total_memory());
+            // Store memory state
+            state
+                .monitor
+                .update(system.used_memory(), system.total_memory());
 
-        // Send update
-        state.channel.send(Event::MemoryState {
-            used: system.used_memory(),
-            total: system.total_memory(),
-        });
+            // Send update
+            state.channel.send(Event::MemoryState {
+                used: system.used_memory(),
+                total: system.total_memory(),
+            });
+        }
 
         // Sleep before next update
         tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
